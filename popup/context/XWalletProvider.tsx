@@ -296,7 +296,7 @@ export function XWalletProvider({ children }) {
     if (handle === 'lidamao') {
       delay(500);
       return {
-        account_address: '0x64E193C40288F4ec1A24C5c92314d9518a6E8e49',
+        account_address: '0x7B57cBd77f286AFc5f63B53E33d6eBA10d383b06',
       };
     }
   };
