@@ -180,10 +180,10 @@ export function XWalletProvider({ children }) {
         data: encodeFunctionData({
           abi: parseAbi(['function mint(address to, string calldata handle)']),
           functionName: 'mint',
-          args: [userInfo.accountAddress, twitterHandle],
+          args: [userInfo?.accountAddress, twitterHandle],
         }),
       });
-      console.log('Mint to', userInfo.accountAddress, 'hash', hash);
+      console.log('Mint to', userInfo?.accountAddress, 'hash', hash);
       await ecdsaProvider.waitForUserOperationTransaction(
         hash as `0x${string}`
       );
@@ -202,10 +202,10 @@ export function XWalletProvider({ children }) {
       new JsonRpcProvider(chainConfig.rpcTarget)
     );
     let tokenids = Object.values(
-      await contract.getTokens(userInfo.accountAddress)
+      await contract.getTokens(userInfo?.accountAddress)
     );
     let tokenURIs = Object.values(
-      await contract.getTokensURI(userInfo.accountAddress)
+      await contract.getTokensURI(userInfo?.accountAddress)
     );
     return { tokenids, tokenURIs };
   }, [ecdsaProvider]);
@@ -301,13 +301,13 @@ export function XWalletProvider({ children }) {
     }
   };
 
-  const getXWalletAddressById = async (id: string, userInfo) => {
+  const getXWalletAddressById = async (id: string, user) => {
     let data = {}
     if (id == "1422892237914923010") {
       data = {
         "user_info": {
-          "name": userInfo.name,
-          "username": userInfo.name
+          "name": user.name,
+          "username": user.name
         },
         "owner_address": "0x64E193C40288F4ec1A24C5c92314d9518a6E8e49",
         "account_address": "0x64E193C40288F4ec1A24C5c92314d9518a6E8e49"
@@ -352,13 +352,9 @@ export function XWalletProvider({ children }) {
     if (address === '0x') {
       return '0';
     }
+    const usdtContract = new Contract('0x4aAeB0c6523e7aa5Adc77EAD9b031ccdEA9cB1c3', ERC20Abi, getProvider());
     const balance = formatEther(
-      await publicClient.readContract({
-        address: '0x4aAeB0c6523e7aa5Adc77EAD9b031ccdEA9cB1c3',
-        abi: ERC20Abi,
-        functionName: 'balanceOf',
-        args: [address],
-      })
+      await usdtContract.balanceOf(address)
     );
     console.log('USDT Balance', balance);
     // setUsdtBalance(balance);
@@ -367,8 +363,8 @@ export function XWalletProvider({ children }) {
 
   // 更新余额
   const updateBalance = useCallback(async () => {
-    const ethBalance = await getETHBalance(userInfo.accountAddress);
-    const usdtBalance = await getUsdtBalance(userInfo.accountAddress);
+    const ethBalance = await getETHBalance(userInfo?.accountAddress);
+    const usdtBalance = await getUsdtBalance(userInfo?.accountAddress);
     setEthBalance(ethBalance);
     setUsdtBalance(usdtBalance);
   }, [userInfo, ecdsaProvider]);
