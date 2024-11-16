@@ -29,7 +29,7 @@ export default function Header() {
   }, []);
 
   const handleToSend = useCallback(() => {
-    navigate('/send?token=matic');
+    navigate('/send?token=base');
   }, []);
 
   return (

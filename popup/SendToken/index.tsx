@@ -25,7 +25,7 @@ function SendToken(props: {}) {
 
   const [balance, setBalance] = useState(ethBalance);
   const [amount, setAmount] = useState('');
-  const [selectedCurrency, setSelectedCurrency] = useState('BASE'); // 默认币种
+  const [selectedCurrency, setSelectedCurrency] = useState('base'); // 默认币种
   const [selectedLogo, setSelectedLogo] = useState(base); // 显示目标地址
   const [targetHandle, setTargetHandle] = useState('');
   const [targetAddress, setTargetAddress] = useState('');
@@ -41,7 +41,7 @@ function SendToken(props: {}) {
   }, []);
 
   const changeBalance = (currency: string) => {
-    if (currency === 'matic') {
+    if (currency === 'base') {
       setBalance(ethBalance);
       setSelectedLogo(base);
     } else if (currency === 'usdt') {

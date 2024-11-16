@@ -14,10 +14,9 @@ function TokensBox() {
     XWalletProviderContext
   );
   const [tokensList, setTokenList] = useState<TokenItem[]>([
-    { token: 'BASE', amount: '0.0' },
+    { token: 'BASE-ETH', amount: '0.0' },
     { token: 'USDC', amount: '0.0' },
     { token: 'USDT', amount: '0.0' },
-    { token: 'MATIC', amount: '0.0' },
   ]);
   const { isShowMoney } = useConfigStore();
   const navigate = useNavigate();
