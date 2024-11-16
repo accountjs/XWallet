@@ -107,7 +107,7 @@ function SendNFT() {
 
       {targetAddress && (
         <div className=" flex justify-start text-center text-base pl-2 mb-2">
-          <div> To Address: {targetAddress} </div>
+          <div> To Address: {addressFormat(targetAddress)} </div>
         </div>
       )}
 
