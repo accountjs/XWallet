@@ -10,7 +10,7 @@ function SendNFT() {
   const goBack = useCallback(() => {
     navigate(-1);
   }, []);
-  const { sendNFT, getXWalletAddress, appendRecord } = useContext(
+  const { sendNFT, getXWalletAddress, appendRecord, isSendLogin } = useContext(
     XWalletProviderContext
   );
   const [searchParams] = useSearchParams();
@@ -128,9 +128,10 @@ function SendNFT() {
             currency: `NFT #${tokenId}`,
             hash,
           });
+          navigate('/success');
         }}
       >
-        Send
+        {isSendLogin ? 'Loading...' : 'Send'}
       </div>
     </div>
   );

@@ -1,5 +1,8 @@
 import cn from 'classnames';
 import matic from 'data-base64:~popup/assets/svg/matic.png';
+import arbi from 'data-base64:~popup/assets/svg/arbi.svg';
+import base from 'data-base64:~popup/assets/svg/base.svg';
+import eth from 'data-base64:~popup/assets/svg/eth.svg';
 import { useCallback, useContext } from 'react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { useNavigate } from 'react-router-dom';
@@ -14,6 +17,7 @@ export default function Header() {
   const { userInfo, ethBalance, usdtBalance } = useContext(
     XWalletProviderContext
   );
+  console.log('userInfo', userInfo);
   const navigate = useNavigate();
 
   const handleShowMoney = useCallback(() => {
@@ -43,7 +47,7 @@ export default function Header() {
           >
             Send
           </Button>
-          <img src={matic} className="w-8 h-8 object-contain"></img>
+          <img src={base} className="w-8 h-8 object-contain"></img>
         </div>
       </div>
       <div className="flex justify-between">
@@ -84,7 +88,16 @@ export default function Header() {
             </CopyToClipboard>
           </div>
         </div>
+        <a href='https://app.ens.domains/' target='_blank' rel='noreferrer' style={{ color: '#1E9BEE', fontSize: '14px' }}>Get  ENS</a>
+      </div>
+      <div className="flex justify-between items-center">
+        <div className="text-3xl font-semibold mt-5 mb-6">
+          {isShowMoney
+            ? `$ ${(Number(ethBalance) * 0.9 + Number(usdtBalance)).toFixed(5)}`
+            : '**********'}
+        </div>
         <div onClick={handleShowMoney} className="cursor-pointer">
+
           {isShowMoney ? (
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -121,11 +134,7 @@ export default function Header() {
           )}
         </div>
       </div>
-      <div className="text-3xl font-semibold mt-5 mb-6">
-        {isShowMoney
-          ? `$ ${(Number(ethBalance) * 0.9 + Number(usdtBalance)).toFixed(5)}`
-          : '**********'}
-      </div>
+
     </div>
   );
 }

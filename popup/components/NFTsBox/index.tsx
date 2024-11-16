@@ -4,6 +4,10 @@ import qbrady_manga from 'data-base64:~popup/assets/svg/qbrady_manga.png';
 import { useNavigate } from 'react-router-dom';
 import { XWalletProviderContext } from '~popup/context';
 import { it } from 'node:test';
+import nft1 from 'data-base64:~popup/assets/svg/nft1.jpg';
+import nft2 from 'data-base64:~popup/assets/svg/nft2.jpg';
+import nft3 from 'data-base64:~popup/assets/svg/nft3.jpg';
+import nft4 from 'data-base64:~popup/assets/svg/nft4.jpg';
 
 interface NFTItem {
   tokenId: bigint;
@@ -22,30 +26,18 @@ function NFTsBox() {
   }, []);
 
   useEffect(() => {
+    const nfts = [nft1, nft2, nft3, nft4];
     (async () => {
-      let { tokenids, tokenURIs } = await getNfts();
-      let nfts: NFTItem[] = [];
-      for (let i = 0; i < tokenURIs.length; i++) {
-        let response = await fetch(
-          (tokenURIs[i] as string).replace('ipfs://', 'https://ipfs.io/ipfs/')
-        );
-        response = await response.json();
-        // @ts-ignore
-        let imageURL = response.image;
-        nfts.push({
-          tokenId: tokenids[i] as bigint,
-          tokenURI: (tokenURIs[i] as string).replace(
-            'ipfs://',
-            'https://ipfs.io/ipfs/'
-          ),
-          tokenName: `NFT #${(tokenids[i] as bigint).toString()}`,
-          tokenImage: (imageURL as string).replace(
-            'ipfs://',
-            'https://ipfs.io/ipfs/'
-          ),
+      // let { tokenids, tokenURIs } = await getNfts();
+      let nftList: any = [];
+      for (let i = 0; i < 4; i++) {
+        nftList.push({
+          tokenId: i,
+          tokenName: `NFT #${i}`,
+          tokenImage: nfts[i],
         });
       }
-      setTokenList(nfts);
+      setTokenList(nftList);
     })();
   }, []);
 

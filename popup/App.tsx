@@ -2,6 +2,7 @@ import { useContext } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import SendNFT from './SendNFT';
 import SendToken from './SendToken';
+import Success from './Success';
 import Home from './components/Home';
 import Login from './components/Login';
 import TransactionDetail from './components/TransactionDetail';
@@ -41,6 +42,14 @@ export default function App() {
           element={
             <>
               <Login />
+            </>
+          }
+        />
+        <Route
+          path="/success"
+          element={
+            <>
+              <Success />
             </>
           }
         />

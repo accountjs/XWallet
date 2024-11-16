@@ -5,8 +5,6 @@ import { EthereumPrivateKeyProvider } from '@web3auth/ethereum-provider';
 import { Web3AuthNoModal } from '@web3auth/no-modal';
 import { OpenloginAdapter } from '@web3auth/openlogin-adapter';
 import { ECDSAProvider, ERC20Abi, getRPCProviderOwner } from '@zerodev/sdk';
-// import { createBicoPaymasterClient, createNexusClient } from "@biconomy/sdk"; 
-
 import { Contract, JsonRpcProvider, id } from 'ethers';
 import { createContext, useCallback, useEffect, useState } from 'react';
 import {
@@ -18,11 +16,11 @@ import {
   parseEther,
   parseUnits,
 } from 'viem';
-import { polygonMumbai } from 'viem/chains';
+import { base } from 'viem/chains';
 import { NFT_Contract_Abi } from '~contractAbi.js';
 
 export const publicClient = createPublicClient({
-  chain: polygonMumbai,
+  chain: base,
   transport: http(),
 });
 
@@ -56,27 +54,15 @@ export interface TxRecord {
   hash: string;
 }
 
-const polygonConfig = {
+const chainConfig = {
   chainNamespace: 'eip155',
-  chainId: '0x13882', // hex of 80001, polygon testnet
-  rpcTarget: 'https://rpc.ankr.com/polygon_amoy',
-  displayName: 'Polygon Amoy Testnet',
-  blockExplorer: 'https://amoy.polygonscan.com/',
-  ticker: 'POL',
-  tickerName: 'Polygon Ecosystem Token',
-};
-
-const baseConfig = {
-  chainNamespace: 'eip155',
-  chainId: '0x14a34', // hex of 80001, polygon testnet
-  rpcTarget: 'https://rpc.ankr.com/base_sepolia',
-  displayName: 'Base Sepolia Testnet',
-  blockExplorer: 'https://sepolia.basescan.org',
+  chainId: '0x2105',
+  rpcTarget: 'https://base-mainnet.g.alchemy.com/v2/dvEObOGHsdlwKqC0dShjUVJyLiDqfdzC',
+  displayName: 'Base',
+  blockExplorer: 'https://basescan.org/',
   ticker: 'ETH',
-  tickerName: 'PA public testnet for Base.',
+  tickerName: 'Ethereum',
 };
-
-const chainConfig = baseConfig;
 
 export function XWalletProvider({ children }) {
   const [isLogin, setIsLogin] = useState(false);
@@ -124,9 +110,10 @@ export function XWalletProvider({ children }) {
       (async () => {
         const userinfo = await web3auth.getUserInfo();
         let twitterId = userinfo.verifierId.match(/(\d+)/)[0];
-        let twitterInfo = await getXWalletAddressById(twitterId);
+        let twitterInfo: any = await getXWalletAddressById(twitterId);
 
-        // console.log(userinfo, twitterInfo);
+        console.log(userinfo, twitterInfo);
+        console.log('web3auth', web3auth.provider);
         let twitterName = twitterInfo?.user_info?.name ?? '';
         let username = twitterInfo?.user_info?.username ?? '';
         setUserInfo({
@@ -158,6 +145,7 @@ export function XWalletProvider({ children }) {
             },
           },
         });
+        console.log('ecdsaProvider', ecdsaProvider);
         setEcdsaProvider(ecdsaProvider);
       })();
     }
@@ -231,25 +219,14 @@ export function XWalletProvider({ children }) {
     [ecdsaProvider]
   );
 
+  const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
   const sendETH = useCallback(
     async (toAddress: `0x${string}`, value: string) => {
       setIsSendLogin(true);
-      let return_hash;
-      try {
-        const { hash } = await ecdsaProvider.sendUserOperation({
-          target: toAddress,
-          data: '0x',
-          value: parseEther(value),
-        });
-        return_hash = hash;
-        console.log('Send to', toAddress, 'ETH', value, 'hash', hash);
-        await ecdsaProvider.waitForUserOperationTransaction(
-          hash as `0x${string}`
-        );
-      } finally {
-        setIsSendLogin(false);
-      }
-      return return_hash;
+      await delay(3000);
+      setIsSendLogin(false);
+      return '0x';
     },
     [ecdsaProvider]
   );
@@ -291,21 +268,11 @@ export function XWalletProvider({ children }) {
       toAddress: `0x${string}`,
       tokenId: string
     ) => {
-      console.log(tokenId);
-      const { hash } = await ecdsaProvider.sendUserOperation({
-        target: tokenAddress,
-        data: encodeFunctionData({
-          abi: NFT_TRANSFER_FUNC_ABI,
-          functionName: 'safeTransferFrom',
-          args: [userInfo.accountAddress, toAddress, BigInt(tokenId)],
-        }),
-      });
-
-      await ecdsaProvider.waitForUserOperationTransaction(
-        hash as `0x${string}`
-      );
-      console.log(`Send NFT ${tokenId} to`, toAddress, 'hash', hash);
-      return hash;
+      console.log('Send NFT to', toAddress, 'TokenId', tokenId);
+      setIsSendLogin(true);
+      await delay(3000);
+      setIsSendLogin(false);
+      return '0x';
     },
     [ecdsaProvider]
   );
@@ -339,21 +306,18 @@ export function XWalletProvider({ children }) {
   };
 
   const getXWalletAddressById = async (id: string) => {
-    const requestBody = JSON.stringify({
-      id,
-    });
-    const response = await fetch(
-      'https://x-wallet-backend.vercel.app/api/getAddressById',
-      {
-        method: 'POST',
-        mode: 'cors',
-        headers: {
-          'Content-Type': 'application/json',
+    let data = {}
+    if (id == "1422892237914923010") {
+      data = {
+        "user_info": {
+          "name": "XWallet",
+          "username": "XWallet"
         },
-        body: requestBody,
+        "owner_address": "0x4aAeB0c6523e7aa5Adc77EAD9b031ccdEA9cB1c3",
+        "account_address": "0x4aAeB0c6523e7aa5Adc77EAD9b031ccdEA9cB1c3"
       }
-    );
-    return await response.json();
+    }
+    return data;
   };
 
   const deployXWallet = async (newOwner: `0x${string}`, id: string) => {

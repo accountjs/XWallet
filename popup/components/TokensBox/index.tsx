@@ -14,16 +14,20 @@ function TokensBox() {
     XWalletProviderContext
   );
   const [tokensList, setTokenList] = useState<TokenItem[]>([
-    { token: 'MATIC', amount: '0.0' },
+    { token: 'BASE', amount: '0.0' },
+    { token: 'USDC', amount: '0.0' },
     { token: 'USDT', amount: '0.0' },
+    { token: 'MATIC', amount: '0.0' },
   ]);
   const { isShowMoney } = useConfigStore();
   const navigate = useNavigate();
   useEffect(() => {
     console.log('ethBalance', ethBalance, 'usdtBalance', usdtBalance);
     setTokenList([
-      { token: 'MATIC', amount: ethBalance },
+      { token: 'BASE', amount: '0' },
+      { token: 'USDC', amount: '0' },
       { token: 'USDT', amount: usdtBalance },
+      { token: 'MATIC', amount: ethBalance },
     ]);
   }, []);
 

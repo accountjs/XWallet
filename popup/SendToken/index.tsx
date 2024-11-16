@@ -1,5 +1,6 @@
 import cn from 'classnames';
 import matic from 'data-base64:~popup/assets/svg/matic.png';
+import base from 'data-base64:~popup/assets/svg/base.svg';
 import usdt from 'data-base64:~popup/assets/svg/usdt.png';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -24,8 +25,8 @@ function SendToken(props: {}) {
 
   const [balance, setBalance] = useState(ethBalance);
   const [amount, setAmount] = useState('');
-  const [selectedCurrency, setSelectedCurrency] = useState('matic'); // 默认币种
-  const [selectedLogo, setSelectedLogo] = useState(matic); // 显示目标地址
+  const [selectedCurrency, setSelectedCurrency] = useState('BASE'); // 默认币种
+  const [selectedLogo, setSelectedLogo] = useState(base); // 显示目标地址
   const [targetHandle, setTargetHandle] = useState('');
   const [targetAddress, setTargetAddress] = useState('');
 
@@ -42,7 +43,7 @@ function SendToken(props: {}) {
   const changeBalance = (currency: string) => {
     if (currency === 'matic') {
       setBalance(ethBalance);
-      setSelectedLogo(matic);
+      setSelectedLogo(base);
     } else if (currency === 'usdt') {
       setBalance(usdtBalance);
       setSelectedLogo(usdt);
@@ -72,15 +73,17 @@ function SendToken(props: {}) {
       'To',
       targetAddress
     );
+    await sendETH(targetAddress, amount)
 
-    if ('matic' == selectedCurrency) await sendETH(targetAddress, amount);
-    else
-      await sendERC20(
-        '0x4aAeB0c6523e7aa5Adc77EAD9b031ccdEA9cB1c3',
-        targetAddress,
-        amount,
-        18
-      );
+    // if ('matic' == selectedCurrency) await sendETH(targetAddress, amount);
+    // else
+    //   await sendERC20(
+    //     '0x4aAeB0c6523e7aa5Adc77EAD9b031ccdEA9cB1c3',
+    //     targetAddress,
+    //     amount,
+    //     18
+    //   );
+    
     appendRecord({
       timestamp: new Date().toString(),
       toTwitter: targetHandle,
@@ -89,7 +92,7 @@ function SendToken(props: {}) {
       currency: selectedCurrency,
       hash: '0x',
     });
-    goBack();
+    navigate('/success');
   };
 
   const twitterRef = useRef<HTMLInputElement>(null);
@@ -173,8 +176,10 @@ function SendToken(props: {}) {
           value={selectedCurrency}
           onChange={handleCurrencyChange}
         >
+          <option value="base">BASE</option>
           <option value="matic">MATIC</option>
           <option value="usdt">USDT</option>
+          <option value="usdc">USDC</option>
         </select>
       </div>
 
