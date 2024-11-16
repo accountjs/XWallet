@@ -105,9 +105,9 @@ function SendToken(props: {}) {
     } else {
       if (twitterUsername) {
         // 调用后台接口获取目标地址
-
+        console.log('Twitter Username', twitterUsername);
         const data = await getXWalletAddress(twitterUsername);
-        console.log('Target Address', data.account_address);
+        console.log('Target Address', data);
         setTargetAddress(data.account_address);
 
         let handle = twitterUsername; // if address, shorten
@@ -176,8 +176,7 @@ function SendToken(props: {}) {
           value={selectedCurrency}
           onChange={handleCurrencyChange}
         >
-          <option value="base">BASE</option>
-          <option value="matic">MATIC</option>
+          <option value="base">BASE-ETH</option>
           <option value="usdt">USDT</option>
           <option value="usdc">USDC</option>
         </select>

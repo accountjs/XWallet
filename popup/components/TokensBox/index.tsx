@@ -24,10 +24,9 @@ function TokensBox() {
   useEffect(() => {
     console.log('ethBalance', ethBalance, 'usdtBalance', usdtBalance);
     setTokenList([
-      { token: 'BASE', amount: '0' },
+      { token: 'BASE', amount: ethBalance },
       { token: 'USDC', amount: '0' },
       { token: 'USDT', amount: usdtBalance },
-      { token: 'MATIC', amount: ethBalance },
     ]);
   }, []);
 

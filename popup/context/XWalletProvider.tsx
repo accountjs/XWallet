@@ -56,8 +56,8 @@ export interface TxRecord {
 
 const chainConfig = {
   chainNamespace: 'eip155',
-  chainId: '0x2105',
-  rpcTarget: 'https://base-mainnet.g.alchemy.com/v2/dvEObOGHsdlwKqC0dShjUVJyLiDqfdzC',
+  chainId: '0x14a34',
+  rpcTarget: 'https://base-sepolia.g.alchemy.com/v2/dvEObOGHsdlwKqC0dShjUVJyLiDqfdzC',
   displayName: 'Base',
   blockExplorer: 'https://basescan.org/',
   ticker: 'ETH',
@@ -110,7 +110,7 @@ export function XWalletProvider({ children }) {
       (async () => {
         const userinfo = await web3auth.getUserInfo();
         let twitterId = userinfo.verifierId.match(/(\d+)/)[0];
-        let twitterInfo: any = await getXWalletAddressById(twitterId);
+        let twitterInfo: any = await getXWalletAddressById(twitterId, userinfo);
 
         console.log(userinfo, twitterInfo);
         console.log('web3auth', web3auth.provider);
@@ -150,6 +150,11 @@ export function XWalletProvider({ children }) {
       })();
     }
   }, [web3auth, loginLoading]);
+
+  const getProvider = () => {
+    const rpcUrl = 'https://base-sepolia.g.alchemy.com/v2/dvEObOGHsdlwKqC0dShjUVJyLiDqfdzC'
+    return new JsonRpcProvider(rpcUrl)
+  }
 
   const login = useCallback(async () => {
     if (!web3auth) {
@@ -288,33 +293,24 @@ export function XWalletProvider({ children }) {
   };
 
   const getXWalletAddress = async (handle: string) => {
-    const requestBody = JSON.stringify({
-      handle,
-    });
-    const response = await fetch(
-      'https://x-wallet-backend.vercel.app/api/getAddress',
-      {
-        method: 'POST',
-        mode: 'cors',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: requestBody,
-      }
-    );
-    return await response.json();
+    if (handle === 'lidamao') {
+      delay(500);
+      return {
+        account_address: '0x64E193C40288F4ec1A24C5c92314d9518a6E8e49',
+      };
+    }
   };
 
-  const getXWalletAddressById = async (id: string) => {
+  const getXWalletAddressById = async (id: string, userInfo) => {
     let data = {}
     if (id == "1422892237914923010") {
       data = {
         "user_info": {
-          "name": "XWallet",
-          "username": "XWallet"
+          "name": userInfo.name,
+          "username": userInfo.name
         },
-        "owner_address": "0x4aAeB0c6523e7aa5Adc77EAD9b031ccdEA9cB1c3",
-        "account_address": "0x4aAeB0c6523e7aa5Adc77EAD9b031ccdEA9cB1c3"
+        "owner_address": "0x64E193C40288F4ec1A24C5c92314d9518a6E8e49",
+        "account_address": "0x64E193C40288F4ec1A24C5c92314d9518a6E8e49"
       }
     }
     return data;
@@ -343,11 +339,11 @@ export function XWalletProvider({ children }) {
     if (address === '0x') {
       return '0';
     }
+    const provider = getProvider();
     const balance = formatEther(
-      await publicClient.getBalance({
-        address: address,
-      })
+      await provider.getBalance(address)
     );
+    console.log('ETH Balance', balance);
     setEthBalance(balance);
     return balance;
   };
@@ -364,6 +360,7 @@ export function XWalletProvider({ children }) {
         args: [address],
       })
     );
+    console.log('USDT Balance', balance);
     // setUsdtBalance(balance);
     return balance;
   };
