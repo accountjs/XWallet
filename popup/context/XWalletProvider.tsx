@@ -5,7 +5,7 @@ import { EthereumPrivateKeyProvider } from '@web3auth/ethereum-provider';
 import { Web3AuthNoModal } from '@web3auth/no-modal';
 import { OpenloginAdapter } from '@web3auth/openlogin-adapter';
 import { ECDSAProvider, ERC20Abi, getRPCProviderOwner } from '@zerodev/sdk';
-// import { createBicoPaymasterClient, createNexusClient } from "@biconomy/sdk"; 
+import { createBicoPaymasterClient, createNexusClient, NexusClient } from "@biconomy/sdk"; 
 
 import { Contract, JsonRpcProvider, id } from 'ethers';
 import { createContext, useCallback, useEffect, useState } from 'react';
@@ -38,6 +38,10 @@ const NFT_TRANSFER_FUNC_ABI = parseAbi([
 ]);
 const storage = new SecureStorage();
 storage.setPassword('Xwallet');
+
+const bundlerUrl = "https://bundler.biconomy.io/api/v3/84532/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44";
+const paymasterUrl = "https://paymaster.biconomy.io/api/v2/84532/F7wyL1clz.75a64804-3e97-41fa-ba1e-33e98c2cc703"; 
+ 
 
 export interface UserInfo {
   username: string;
@@ -86,9 +90,8 @@ export function XWalletProvider({ children }) {
   const [loginLoading, setLoginLoading] = useState(false);
   const [userInfo, setUserInfo] = useStorage<UserInfo>('user-info');
   const [txRecords, setTxRecords] = useStorage<TxRecord[]>('tx-history', []);
-  const [ecdsaProvider, setEcdsaProvider] = useState<ECDSAProvider | null>(
-    null
-  );
+  // const [ecdsaProvider, setEcdsaProvider] = useState<ECDSAProvider | null>(null);
+  const [nexusClient, setNexusClient] = useState<NexusClient | null>(null);
   const [web3auth, setWeb3auth] = useState<Web3AuthNoModal | null>(null);
 
   useEffect(() => {
@@ -149,16 +152,16 @@ export function XWalletProvider({ children }) {
         } catch (e) {
           console.log(e);
         }
-        const ecdsaProvider = await ECDSAProvider.init({
-          projectId: DEFAULT_PROJECT_ID,
-          owner: getRPCProviderOwner(web3auth.provider),
-          opts: {
-            accountConfig: {
-              accountAddress,
-            },
-          },
-        });
-        setEcdsaProvider(ecdsaProvider);
+        // const ecdsaProvider = await ECDSAProvider.init({
+        //   projectId: DEFAULT_PROJECT_ID,
+        //   owner: getRPCProviderOwner(web3auth.provider),
+        //   opts: {
+        //     accountConfig: {
+        //       accountAddress,
+        //     },
+        //   },
+        // });
+        // setEcdsaProvider(ecdsaProvider);
       })();
     }
   }, [web3auth, loginLoading]);
@@ -182,21 +185,29 @@ export function XWalletProvider({ children }) {
 
   const mintNft = useCallback(
     async (twitterHandle: string) => {
-      const { hash } = await ecdsaProvider.sendUserOperation({
-        target: NFT_ADDRESS,
-        data: encodeFunctionData({
-          abi: parseAbi(['function mint(address to, string calldata handle)']),
-          functionName: 'mint',
-          args: [userInfo.accountAddress, twitterHandle],
-        }),
+      // const { hash } = await ecdsaProvider.sendUserOperation({
+      //   target: NFT_ADDRESS,
+      //   data: encodeFunctionData({
+      //     abi: parseAbi(['function mint(address to, string calldata handle)']),
+      //     functionName: 'mint',
+      //     args: [userInfo.accountAddress, twitterHandle],
+      //   }),
+      // });
+
+      const hash = await nexusClient.sendTransaction({ calls:  
+        [{to : NFT_ADDRESS, value: parseEther('0')}, {
+          data: encodeFunctionData({
+            abi: parseAbi(['function mint(address to, string calldata handle)']),
+            functionName: 'mint',
+            args: [userInfo.accountAddress, twitterHandle],
+          }),
+        }],
       });
       console.log('Mint to', userInfo.accountAddress, 'hash', hash);
-      await ecdsaProvider.waitForUserOperationTransaction(
-        hash as `0x${string}`
-      );
+      await nexusClient.waitForTransactionReceipt(hash);
       return hash;
     },
-    [ecdsaProvider]
+    [nexusClient]
   );
 
   const getNfts = useCallback(async () => {
@@ -215,20 +226,20 @@ export function XWalletProvider({ children }) {
       await contract.getTokensURI(userInfo.accountAddress)
     );
     return { tokenids, tokenURIs };
-  }, [ecdsaProvider]);
+  }, [nexusClient]);
 
   const getTransaction = useCallback(
     async (hash: `0x${string}`) => {
-      return ecdsaProvider.getTransaction(hash);
+      return nexusClient.getTransaction(hash);
     },
-    [ecdsaProvider]
+    [nexusClient]
   );
 
   const getUserOperationByHash = useCallback(
     async (hash: `0x${string}`) => {
-      return ecdsaProvider.getUserOperationByHash(hash);
+      return nexusClient.getUserOperationByHash(hash);
     },
-    [ecdsaProvider]
+    [nexusClient]
   );
 
   const sendETH = useCallback(
@@ -236,22 +247,20 @@ export function XWalletProvider({ children }) {
       setIsSendLogin(true);
       let return_hash;
       try {
-        const { hash } = await ecdsaProvider.sendUserOperation({
+        const { hash } = await nexusClient.sendTransaction({
           target: toAddress,
           data: '0x',
           value: parseEther(value),
         });
         return_hash = hash;
         console.log('Send to', toAddress, 'ETH', value, 'hash', hash);
-        await ecdsaProvider.waitForUserOperationTransaction(
-          hash as `0x${string}`
-        );
+        await nexusClient.waitForTransactionReceipt(hash);
       } finally {
         setIsSendLogin(false);
       }
       return return_hash;
     },
-    [ecdsaProvider]
+    [nexusClient]
   );
 
   const sendERC20 = useCallback(
@@ -264,7 +273,7 @@ export function XWalletProvider({ children }) {
       setIsSendLogin(true);
       let return_hash;
       try {
-        const { hash } = await ecdsaProvider.sendUserOperation({
+        const { hash } = await nexusClient.sendTransaction({
           target: tokenAddress,
           data: encodeFunctionData({
             abi: ERC20Abi,
@@ -274,16 +283,14 @@ export function XWalletProvider({ children }) {
         });
         return_hash = hash;
         console.log('Send to', toAddress, 'ETH', value, 'hash', hash);
-        await ecdsaProvider.waitForUserOperationTransaction(
-          hash as `0x${string}`
-        );
+        await nexusClient.waitForTransactionReceipt(hash);
         console.log('Send to', toAddress, 'Value', value, 'hash', hash);
       } finally {
         setIsSendLogin(false);
       }
       return return_hash;
     },
-    [ecdsaProvider]
+    [nexusClient]
   );
   const sendNFT = useCallback(
     async (
@@ -292,7 +299,7 @@ export function XWalletProvider({ children }) {
       tokenId: string
     ) => {
       console.log(tokenId);
-      const { hash } = await ecdsaProvider.sendUserOperation({
+      const { hash } = await nexusClient.sendTransaction({
         target: tokenAddress,
         data: encodeFunctionData({
           abi: NFT_TRANSFER_FUNC_ABI,
@@ -301,13 +308,11 @@ export function XWalletProvider({ children }) {
         }),
       });
 
-      await ecdsaProvider.waitForUserOperationTransaction(
-        hash as `0x${string}`
-      );
+      await nexusClient.waitForTransactionReceipt(hash);
       console.log(`Send NFT ${tokenId} to`, toAddress, 'hash', hash);
       return hash;
     },
-    [ecdsaProvider]
+    [nexusClient]
   );
 
   const checkTarget = async (target: string) => {
