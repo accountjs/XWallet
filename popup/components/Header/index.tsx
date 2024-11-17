@@ -3,7 +3,7 @@ import matic from 'data-base64:~popup/assets/svg/matic.png';
 import arbi from 'data-base64:~popup/assets/svg/arbi.svg';
 import base from 'data-base64:~popup/assets/svg/base.svg';
 import eth from 'data-base64:~popup/assets/svg/eth.svg';
-import { useCallback, useContext } from 'react';
+import { useCallback, useContext, useEffect } from 'react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '~components/ui/button';
@@ -17,6 +17,7 @@ export default function Header() {
   const { userInfo, ethBalance, usdtBalance } = useContext(
     XWalletProviderContext
   );
+  const [chainlinkPrice, setChainlinkPrice] = useState('0');
   console.log('userInfo', userInfo);
   const navigate = useNavigate();
 
@@ -26,6 +27,20 @@ export default function Header() {
 
   const handleCopyAddress = useCallback(() => {
     console.log('copied');
+  }, []);
+
+  const fetchChainlinkPrice = async () => {
+    try {
+      const response = await fetch('https://api.chainlink.com/v1/prices/eth');
+      const data = await response.json();
+      setChainlinkPrice(data.price);
+    } catch (error) {
+      console.error('Error fetching Chainlink ETH price:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchChainlinkPrice();
   }, []);
 
   const handleToSend = useCallback(() => {
@@ -134,7 +149,7 @@ export default function Header() {
           )}
         </div>
       </div>
-      <p className="text-[#5B6A78] text-sm" style={{marginTop: '-10px', marginBottom: '10px', color: '#13AE67'}}>ETH Price: ${Number(ethBalance).toFixed(2)}</p>
+      <p className="text-[#5B6A78] text-sm" style={{marginTop: '-10px', marginBottom: '10px', color: '#13AE67'}}>ETH Price: ${Number(chainlinkPrice).toFixed(2)}</p>
 
     </div>
   );
