@@ -39,6 +39,17 @@ export default function Header() {
     }
   };
 
+  const getAddressENS = async (address) => {
+    try {
+      const response = await fetch(`https://api.enslookup.com/v1/address/${address}`);
+      const data = await response.json();
+      return data.ens || null;
+    } catch (error) {
+      console.error('Error fetching ENS for address:', error);
+      return null;
+    }
+  };
+
   useEffect(() => {
     fetchChainlinkPrice();
   }, []);
