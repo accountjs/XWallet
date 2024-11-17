@@ -298,12 +298,12 @@ export function XWalletProvider({ children }) {
   };
 
   const getXWalletAddress = async (handle: string) => {
-    if (handle === 'lidamao') {
+    // if (handle === 'lidamao') {
       delay(500);
       return {
         account_address: '0x7B57cBd77f286AFc5f63B53E33d6eBA10d383b06',
       };
-    }
+    // }
   };
 
   const getXWalletAddressById = async (id: string, user) => {
