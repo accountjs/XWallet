@@ -105,17 +105,22 @@ export function XWalletProvider({ children }) {
   }, []);
 
   useEffect(() => {
+    console.log('loginLoading', loginLoading, web3auth?.connected);
+    
     if (!loginLoading && web3auth && web3auth.connected) {
       setIsLogin(true);
       (async () => {
         const userinfo = await web3auth.getUserInfo();
+        // console.log('web3auth userinfo', userinfo);
+        
         let twitterId = userinfo.verifierId.match(/(\d+)/)[0];
         let twitterInfo: any = await getXWalletAddressById(twitterId, userinfo);
 
-        console.log(userinfo, twitterInfo);
+        console.log("check", userinfo, twitterInfo);
         console.log('web3auth', web3auth.provider);
         let twitterName = twitterInfo?.user_info?.name ?? '';
         let username = twitterInfo?.user_info?.username ?? '';
+        console.log('username', username);
         setUserInfo({
           username,
           twitterId,
@@ -302,17 +307,15 @@ export function XWalletProvider({ children }) {
   };
 
   const getXWalletAddressById = async (id: string, user) => {
-    let data = {}
-    if (id == "1422892237914923010") {
-      data = {
-        "user_info": {
-          "name": user.name,
-          "username": user.name
-        },
-        "owner_address": "0x64E193C40288F4ec1A24C5c92314d9518a6E8e49",
-        "account_address": "0x64E193C40288F4ec1A24C5c92314d9518a6E8e49"
-      }
+    let data = {
+      "user_info": {
+        "name": user.name,
+        "username": user.name
+      },
+      "owner_address": "0x64E193C40288F4ec1A24C5c92314d9518a6E8e49",
+      "account_address": "0x64E193C40288F4ec1A24C5c92314d9518a6E8e49"
     }
+    
     return data;
   };
 

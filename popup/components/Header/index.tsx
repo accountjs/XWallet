@@ -3,7 +3,7 @@ import matic from 'data-base64:~popup/assets/svg/matic.png';
 import arbi from 'data-base64:~popup/assets/svg/arbi.svg';
 import base from 'data-base64:~popup/assets/svg/base.svg';
 import eth from 'data-base64:~popup/assets/svg/eth.svg';
-import { useCallback, useContext, useEffect } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '~components/ui/button';
