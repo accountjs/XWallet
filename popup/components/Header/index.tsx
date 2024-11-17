@@ -134,7 +134,7 @@ export default function Header() {
           )}
         </div>
       </div>
-      <p className="text-[#5B6A78] text-sm" style={{marginTop: '-10px', marginBottom: '10px', color: '#13AE67'}}>ETH Price: $4000</p>
+      <p className="text-[#5B6A78] text-sm" style={{marginTop: '-10px', marginBottom: '10px', color: '#13AE67'}}>ETH Price: ${Number(ethBalance).toFixed(2)}</p>
 
     </div>
   );
