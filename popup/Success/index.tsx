@@ -7,16 +7,18 @@ import { Button } from '~components/ui/button';
 
 function SendToken(props: {}) {
   const navigate = useNavigate();
+  const tx='0x430798dcce680e3aac603f682ab8b73b1dd40e10ccc8fe79679e6a9f14ecd588'
 
   const handleCopyAddress = useCallback(() => {
     console.log('copied');
   }, []);
 
+
   return (
     <div className="p-4 relative pb-6 h-[100%] border border-[#ECECEC] rounded-2xl">
       <img src={success} alt="" style={{ display: 'block', margin: '20px auto' }} />
       <div className="flex items-center justify-center" >
-        <a href='https://base-sepolia.blockscout.com/tx/0x430798dcce680e3aac603f682ab8b73b1dd40e10ccc8fe79679e6a9f14ecd588' className="text-blue-500" target='_blank'>blockscout: 0x4307...d588</a>
+        <a href={`https://base-sepolia.blockscout.com/tx/${tx}`} className="text-blue-500" target='_blank'>blockscout: 0x4307...d588</a>
         <div className="cursor-pointer" style={{ marginLeft: '8px' }}>
           <CopyToClipboard
             text={'0x4ab1e1fb4f03cd0451b22024d9e772ad33be6baf354f07a643c83b7da5ba382b'}
