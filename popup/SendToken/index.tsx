@@ -81,12 +81,16 @@ function SendToken(props: {}) {
         amount,
         18
       );
+    let currency = selectedCurrency
+    if (selectedCurrency === 'matic') {
+      currency = 'HSK';
+    }
     appendRecord({
       timestamp: new Date().toString(),
       toTwitter: targetHandle,
       toAddress: targetAddress,
       amount,
-      currency: selectedCurrency,
+      currency,
       hash: '0x',
     });
     goBack();
@@ -101,11 +105,10 @@ function SendToken(props: {}) {
       setTargetAddress(twitterUsername);
     } else {
       if (twitterUsername) {
-        // 调用后台接口获取目标地址
-
+        // 调用后台接口获取目标地址 
         const data = await getXWalletAddress(twitterUsername);
-        console.log('Target Address', data.account_address);
-        setTargetAddress(data.account_address);
+        console.log('Target Address', data.predictedAddress);
+        setTargetAddress(data.predictedAddress);
 
         let handle = twitterUsername; // if address, shorten
         if (handle.startsWith('0x') && handle.length > 16) {
@@ -131,7 +134,7 @@ function SendToken(props: {}) {
       <div className="flex justify-center items-center">
         <img src={selectedLogo} className={cn('w-8 h-8 object-contain')} />
         <div className={cn('font-base text-2xl mx-2 my-4')}>
-          Balance: {balance}
+          Balance: {Number(balance).toFixed(4)}
         </div>
       </div>
       <div className=" flex justify-start text-center text-base pl-2 mb-2 mt-6">
@@ -173,7 +176,7 @@ function SendToken(props: {}) {
           value={selectedCurrency}
           onChange={handleCurrencyChange}
         >
-          <option value="matic">MATIC</option>
+          <option value="matic">HSK</option>
           <option value="usdt">USDT</option>
         </select>
       </div>

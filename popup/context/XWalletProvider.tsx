@@ -7,7 +7,8 @@ import { OpenloginAdapter } from '@web3auth/openlogin-adapter';
 import { ECDSAProvider, ERC20Abi, getRPCProviderOwner } from '@zerodev/sdk';
 // import { createBicoPaymasterClient, createNexusClient } from "@biconomy/sdk"; 
 
-import { Contract, JsonRpcProvider, id } from 'ethers';
+import { Contract, JsonRpcProvider, BrowserProvider } from 'ethers';
+import { send } from 'node:process';
 import { createContext, useCallback, useEffect, useState } from 'react';
 import {
   createPublicClient,
@@ -68,12 +69,12 @@ const polygonConfig = {
 
 const baseConfig = {
   chainNamespace: 'eip155',
-  chainId: '0x14a34', // hex of 80001, polygon testnet
-  rpcTarget: 'https://rpc.ankr.com/base_sepolia',
-  displayName: 'Base Sepolia Testnet',
-  blockExplorer: 'https://sepolia.basescan.org',
-  ticker: 'ETH',
-  tickerName: 'PA public testnet for Base.',
+  chainId: '0x85', // hex of 80001, polygon testnet
+  rpcTarget: 'https://hashkeychain-testnet.alt.technology',
+  displayName: 'HashKey Chain Testnet',
+  blockExplorer: 'https://hashkeychain-testnet-explorer.alt.technology',
+  ticker: 'HSK',
+  tickerName: 'HashKey Chain Testnet',
 };
 
 const chainConfig = baseConfig;
@@ -118,37 +119,54 @@ export function XWalletProvider({ children }) {
     init();
   }, []);
 
+  const sendETHFn =  async (toAddress: string) => {
+    const requestBody = JSON.stringify({
+      address: toAddress,
+      network: 'hsk',
+    });
+    const response = await fetch(
+      'https://test-vercel-henna-psi.vercel.app/api/send',
+      {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: requestBody,
+      }
+    );
+    // console.log('response', await response.json());
+    return await response.json();
+  }
+
   useEffect(() => {
     if (!loginLoading && web3auth && web3auth.connected) {
       setIsLogin(true);
       (async () => {
         const userinfo = await web3auth.getUserInfo();
-        let twitterId = userinfo.verifierId.match(/(\d+)/)[0];
-        let twitterInfo = await getXWalletAddressById(twitterId);
-
+        console.log(userinfo);
+        const twitterId = userinfo.email;
         // console.log(userinfo, twitterInfo);
-        let twitterName = twitterInfo?.user_info?.name ?? '';
-        let username = twitterInfo?.user_info?.username ?? '';
+        const twitterName = userinfo.name;
+        const username = userinfo.name;
+        console.log('twitterId', web3auth.provider);
+        const ownerAddress = await getRPCProviderOwner(
+          web3auth.provider
+        ).getAddress();
+        // await sendETHFn(ownerAddress);
+        const accountAddress = await checkTarget(twitterId);
+        console.log('address', accountAddress);
         setUserInfo({
           username,
           twitterId,
           twitterName,
-          ownerAddress: twitterInfo?.owner_address ?? '0x',
-          accountAddress: twitterInfo?.account_address ?? '0x',
+          ownerAddress,
+          accountAddress: accountAddress,
         });
-        let accountAddress = twitterInfo?.account_address ?? '';
-        let ownerAddress = await getRPCProviderOwner(
-          web3auth.provider
-        ).getAddress();
+        
         updateBalance();
         // await getETHBalance(twitterInfo?.account_address ?? '0x');
         // await getUsdtBalance(twitterInfo?.account_address ?? '0x');
-        try {
-          const resp = await deployXWallet(ownerAddress, twitterId);
-          console.log('deploy', resp);
-        } catch (e) {
-          console.log(e);
-        }
         const ecdsaProvider = await ECDSAProvider.init({
           projectId: DEFAULT_PROJECT_ID,
           owner: getRPCProviderOwner(web3auth.provider),
@@ -231,21 +249,36 @@ export function XWalletProvider({ children }) {
     [ecdsaProvider]
   );
 
+  const sendTransaction = async (toAddress, amount) => {
+    const provider = web3auth.provider;
+    try {
+      const ethersProvider = new BrowserProvider(provider);
+      const signer = await ethersProvider.getSigner();
+      // Submit transaction to the blockchain
+      const tx = await signer.sendTransaction({
+        to: toAddress,
+        value: parseEther(amount),
+        maxPriorityFeePerGas: "5000000000", // Max priority fee per gas
+        maxFeePerGas: "6000000000000", // Max fee per gas
+      });
+  
+      // Wait for transaction to be mined
+      const receipt = await tx.wait();
+  
+      return receipt;
+    } catch (error) {
+      return error;
+    }
+  }
+
   const sendETH = useCallback(
-    async (toAddress: `0x${string}`, value: string) => {
+    async (toAddress: string, value: string) => {
       setIsSendLogin(true);
       let return_hash;
       try {
-        const { hash } = await ecdsaProvider.sendUserOperation({
-          target: toAddress,
-          data: '0x',
-          value: parseEther(value),
-        });
-        return_hash = hash;
-        console.log('Send to', toAddress, 'ETH', value, 'hash', hash);
-        await ecdsaProvider.waitForUserOperationTransaction(
-          hash as `0x${string}`
-        );
+        const receipt = await sendTransaction(toAddress, value);
+        console.log('Send to', toAddress, 'ETH', value, 'hash', receipt);
+        return_hash = receipt.hash;
       } finally {
         setIsSendLogin(false);
       }
@@ -311,29 +344,13 @@ export function XWalletProvider({ children }) {
   );
 
   const checkTarget = async (target: string) => {
-    const isEthereumAddress = /^0x[0-9a-fA-F]{40}$/.test(target);
-    if (isEthereumAddress) {
-      return target;
-    } else {
       const repo = await getXWalletAddress(target);
-      return repo['account_address'];
-    }
+      return repo['predictedAddress'];
   };
 
   const getXWalletAddress = async (handle: string) => {
-    const requestBody = JSON.stringify({
-      handle,
-    });
     const response = await fetch(
-      'https://x-wallet-backend.vercel.app/api/getAddress',
-      {
-        method: 'POST',
-        mode: 'cors',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: requestBody,
-      }
+      `https://test-vercel-henna-psi.vercel.app/api/predict_address?network=hsk&twitterId=${handle}`,
     );
     return await response.json();
   };
@@ -375,17 +392,27 @@ export function XWalletProvider({ children }) {
     return await response.json();
   };
 
-  const getETHBalance = async (address: `0x${string}`) => {
-    if (address === '0x') {
-      return '0';
+
+  const getETHBalance = async () => {
+    const provider = web3auth.provider;
+    try {
+      const ethersProvider = new BrowserProvider(provider);
+      const signer = await ethersProvider.getSigner();
+  
+      // Get user's Ethereum public address
+      const address = signer.getAddress();
+      console.log('address', address);
+      // Get user's balance in ether
+      const balance = formatEther(
+        await ethersProvider.getBalance(address) // Balance is in wei
+      );
+
+      console.log('balance', balance);
+  
+      return balance;
+    } catch (error) {
+      return error;
     }
-    const balance = formatEther(
-      await publicClient.getBalance({
-        address: address,
-      })
-    );
-    setEthBalance(balance);
-    return balance;
   };
 
   const getUsdtBalance = async (address: `0x${string}`) => {
@@ -406,11 +433,14 @@ export function XWalletProvider({ children }) {
 
   // 更新余额
   const updateBalance = useCallback(async () => {
-    const ethBalance = await getETHBalance(userInfo.accountAddress);
+    const balance = await getETHBalance(); 
+    console.log('ethBalance', balance);
+    setEthBalance(balance);
     const usdtBalance = await getUsdtBalance(userInfo.accountAddress);
-    setEthBalance(ethBalance);
+    console.log('ethBalance', balance, 'usdtBalance', usdtBalance);
+    setEthBalance(balance);
     setUsdtBalance(usdtBalance);
-  }, [userInfo, ecdsaProvider]);
+  }, [userInfo, ecdsaProvider]); 
 
   // 插入交易记录
   const appendRecord = (txRecord: TxRecord) => {

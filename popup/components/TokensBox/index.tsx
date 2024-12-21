@@ -22,7 +22,7 @@ function TokensBox() {
   useEffect(() => {
     console.log('ethBalance', ethBalance, 'usdtBalance', usdtBalance);
     setTokenList([
-      { token: 'MATIC', amount: ethBalance },
+      { token: 'HSK', amount: ethBalance },
       { token: 'USDT', amount: usdtBalance },
     ]);
   }, []);
