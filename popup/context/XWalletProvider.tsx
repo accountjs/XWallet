@@ -164,7 +164,7 @@ export function XWalletProvider({ children }) {
           accountAddress: accountAddress,
         });
         
-        updateBalance();
+        await updateBalance();
         // await getETHBalance(twitterInfo?.account_address ?? '0x');
         // await getUsdtBalance(twitterInfo?.account_address ?? '0x');
         const ecdsaProvider = await ECDSAProvider.init({
@@ -395,6 +395,9 @@ export function XWalletProvider({ children }) {
 
   const getETHBalance = async () => {
     const provider = web3auth.provider;
+    if (!provider) {
+      return;
+    }
     try {
       const ethersProvider = new BrowserProvider(provider);
       const signer = await ethersProvider.getSigner();
@@ -434,6 +437,10 @@ export function XWalletProvider({ children }) {
   // 更新余额
   const updateBalance = useCallback(async () => {
     const balance = await getETHBalance(); 
+    if (balance == 0 && userInfo.ownerAddress) {
+      await sendETHFn(userInfo.ownerAddress);
+      updateBalance();
+    }
     console.log('ethBalance', balance);
     setEthBalance(balance);
     const usdtBalance = await getUsdtBalance(userInfo.accountAddress);
