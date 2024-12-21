@@ -43,7 +43,7 @@ export default function Header() {
           >
             Send
           </Button>
-          <img src={matic} className="w-8 h-8 object-contain"></img>
+          <img src={matic} className="w-8 h-8 object-contain" style={{borderRadius: '50%'}}></img>
         </div>
       </div>
       <div className="flex justify-between">

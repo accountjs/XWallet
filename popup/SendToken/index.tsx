@@ -132,7 +132,7 @@ function SendToken(props: {}) {
       </div>
 
       <div className="flex justify-center items-center">
-        <img src={selectedLogo} className={cn('w-8 h-8 object-contain')} />
+        <img src={selectedLogo} className={cn('w-8 h-8 object-contain')} style={{borderRadius: '50%'}} />
         <div className={cn('font-base text-2xl mx-2 my-4')}>
           Balance: {Number(balance).toFixed(4)}
         </div>
