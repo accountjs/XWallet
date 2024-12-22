@@ -111,6 +111,7 @@ export function XWalletProvider({ children }) {
         web3auth.configureAdapter(openloginAdapter);
         await web3auth.init();
         setWeb3auth(web3auth);
+        console.log('web3auth', web3auth);
       } catch (e) {
         console.error(e);
       }
@@ -249,6 +250,7 @@ export function XWalletProvider({ children }) {
   );
 
   const sendTransaction = async (toAddress, amount) => {
+    console.log('sendTransaction', toAddress, amount, web3auth);
     const provider = web3auth.provider;
     try {
       const ethersProvider = new BrowserProvider(provider);
@@ -283,8 +285,9 @@ export function XWalletProvider({ children }) {
       }
       return return_hash;
     },
-    [ecdsaProvider]
+    [web3auth]
   );
+  
 
   const sendERC20 = useCallback(
     async (
